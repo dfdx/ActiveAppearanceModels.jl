@@ -5,3 +5,4 @@
 # hide matlab files that I can't redistribute
 matlab/
 *.m
+.juliahistory
