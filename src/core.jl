@@ -2,9 +2,10 @@
 include("utils.jl")
 include("model.jl")
 include("triang.jl")
+include("procrustes.jl")
+include("warp.jl")
 include("data.jl")
 include("view.jl")
-include("procrustes.jl")
 
 using MultivariateStats
 

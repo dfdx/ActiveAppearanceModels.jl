@@ -12,45 +12,27 @@ function viewshape(img::Image, lms::Shape)
 end
 viewshape(mat::Matrix{Float64}, lms::Shape) = viewshape(convert(Image, mat), lms)
 
-## function viewtri(img::Image, trimats::Vector{Matrix{Float64}})
-##     imgc, img2 = view(img)
-##     for trimat in trimats
-##         ## a = geta(tri); xa, ya = getx(a), gety(a)
-##         ## b = geta(tri); xb, yb = getx(b), gety(b)
-##         ## c = geta(tri); xc, yc = getx(c), gety(c)
-##         a = tuple(trimat[1, :]...)
-##         b = tuple(trimat[2, :]...)
-##         c = tuple(trimat[3, :]...)
-##         annotate!(imgc, img2, AnnotationLine(a, b))
-##         annotate!(imgc, img2, AnnotationLine(b, c))
-##         annotate!(imgc, img2, AnnotationLine(c, a))
-##     end
-## end
 
-
-function viewtri(img::Image, shape::Shape, trigs::Vector{(Int64, Int64, Int64)})
+function viewtri(img::Image, shape::Shape, trigs::Matrix{Int64})
     imgc, img2 = view(img)
-    for tr in trigs
-        println("hey!")
-        ## a = geta(tri); xa, ya = getx(a), gety(a)
-        ## b = geta(tri); xb, yb = getx(b), gety(b)
-        ## c = geta(tri); xc, yc = getx(c), gety(c)
-        a = (shape[tr[1], 1], shape[tr[1], 2])
-        b = (shape[tr[2], 1], shape[tr[2], 2])
-        c = (shape[tr[3], 1], shape[tr[3], 2])
+    for i=1:size(trigs, 1)
+        println(i)
+        a = (shape[trigs[i, 1], 2], shape[trigs[i, 1], 1])
+        b = (shape[trigs[i, 2], 2], shape[trigs[i, 2], 1])
+        c = (shape[trigs[i, 3], 2], shape[trigs[i, 3], 1])
         annotate!(imgc, img2, AnnotationLine(a, b))
         annotate!(imgc, img2, AnnotationLine(b, c))
         annotate!(imgc, img2, AnnotationLine(c, a))
     end
 end
 
-viewtri(mat::Matrix{Float64}, shape::Shape, trigs::Vector{(Int64, Int64, Int64)}) =
+viewtri(mat::Matrix{Float64}, shape::Shape, trigs::Matrix{Int64}) =
     viewtri(convert(Image, mat), shape, trigs)
 
 
 
 function test_viewtri()
-    n = 170
+    n = 100
     imgs = read_images(IMG_DIR, 200)
     shapes = read_landmarks(LM_DIR, 200)
     trigs = delaunayindexes(shapes[n])

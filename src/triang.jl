@@ -1,44 +1,51 @@
 
 using VoronoiDelaunay
+import GeometricalPredicates.getx
+import GeometricalPredicates.gety
 
 
-## function triangle_as_matrix(delaunaytri)
-##     a = geta(delaunaytri); xa, ya = getx(a), gety(a)
-##     b = getb(delaunaytri); xb, yb = getx(b), gety(b)
-##     c = getc(delaunaytri); xc, yc = getx(c), gety(c)
-##     return Float64[ya xa;
-##             yb xb;
-##             yc xc]
-## end
-
-
-## function triangulate(shape::Shape)
-##     npoints = size(shape, 1)
-##     shape_min = minimum(shape)
-##     scale = (maximum(shape) - minimum(shape)) / (max_coord - min_coord)
-##     shape_scaled = (shape .- shape_min) / scale + min_coord
-##     tess = DelaunayTessellation(npoints)
-##     a = Point2D[Point(shape_scaled[i, 1], shape_scaled[i, 2]) for i in 1:npoints] 
-##     push!(tess, a)
-##     trimats = Matrix{Float64}[triangle_as_matrix(tri) for tri in collect(tess)[1:end]]
-##     trimats = Matrix{Float64}[(trimat .- min_coord) .* scale .+ shape_min
-##                               for trimat in trimats]
-##     return trimats
-## end
-
-
-
-
-
-function delaunayindexes(shape::Shape)
-    npoints = size(shape, 1)
-    shape_min = minimum(shape)
-    scale = (maximum(shape) - minimum(shape)) / (max_coord - min_coord)
-    shape_scaled = (shape .- shape_min) / scale + min_coord
-    tess = DelaunayTessellation(npoints)
-    a = Point2D[Point(shape_scaled[i, 1], shape_scaled[i, 2]) for i in 1:npoints] 
-    push!(tess, a)
-    trigs = (Int64, Int64, Int64)[(tr._neighbour_a, tr._neighbour_b, tr._neighbour_c)
-                                  for tr in collect(tess)]
-    return trigs
+type IndexedPoint2D <: AbstractPoint2D
+    _x::Float64
+    _y::Float64
+    _idx::Int64
+    IndexedPoint2D(x, y, idx) = new(x, y, idx)
+    IndexedPoint2D(x, y) = new(x, y, 0)
 end
+
+
+getx(p::IndexedPoint2D) = p._x
+gety(p::IndexedPoint2D) = p._y
+getidx(p::IndexedPoint2D) = p._idx
+
+function to_points(shape::Shape)
+    min_value, max_value = (minimum(shape), maximum(shape))
+    sc = (max_value - min_value) / (max_coord - min_coord)
+    sc_shape = (shape .- min_value) / sc + min_coord
+    points = IndexedPoint2D[IndexedPoint2D(sc_shape[i, 1], sc_shape[i, 2], i)
+                            for i in 1:size(shape, 1)] 
+    return (points, sc)
+end
+
+
+
+function gettriangles(shape::Shape)
+    npoints = size(shape, 1)
+    tess = DelaunayTessellation2D{IndexedPoint2D}(npoints)
+    points, _ = to_points(shape)
+    push!(tess, points)
+    return collect(tess)[1:end-1]   # TODO: don't include into iterator
+end
+
+ 
+function delaunayindexes(shape::Shape)
+    trigs = gettriangles(shape)
+    idxs = zeros(Int64, length(trigs), 3)
+    for i=1:length(trigs)
+        idxs[i, 1] = getidx(geta(trigs[i]))
+        idxs[i, 2] = getidx(getb(trigs[i]))
+        idxs[i, 3] = getidx(getc(trigs[i]))
+    end
+    return idxs
+end
+
+
