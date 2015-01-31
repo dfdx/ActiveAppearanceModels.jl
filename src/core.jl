@@ -1,4 +1,6 @@
 
+VERSION < v"0.4-" && using Docile
+
 include("utils.jl")
 include("model.jl")
 include("triang.jl")
@@ -7,18 +9,14 @@ include("warp.jl")
 include("data.jl")
 include("view.jl")
 
-using MultivariateStats
+
 
 
 function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
     @assert length(imgs) == length(shapes) "Different number of images and landmark sets"
     n_scales = length(m.scales)
     n_samples = length(imgs)
-    shapes_aligned = align_shapes(shapes)
-    m.s0 = mean(shapes_aligned)
-    shape_mat = datamatrix(Shape[s .- m.s0 for s in shapes_aligned])
-    S_PCA = fit(PCA, shape_mat)
-    S = projection(S_PCA)
+    
     # triangulating
     
     

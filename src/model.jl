@@ -3,7 +3,7 @@ typealias Shape Matrix{Float64}
 
 type ShapeModel
     s0::Shape
-    
+    S::Matrix{Float64}
 end
 
 type TextureModel
