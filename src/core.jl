@@ -4,6 +4,7 @@ VERSION < v"0.4-" && using Docile
 include("utils.jl")
 include("model.jl")
 include("triang.jl")
+include("polyline.jl")
 include("procrustes.jl")
 include("warp.jl")
 include("data.jl")
