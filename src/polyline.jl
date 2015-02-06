@@ -20,7 +20,7 @@ function fillpoly!{T,P<:Number}(M::Matrix{T}, px::Vector{P}, py::Vector{P}, valu
     @assert length(px) == length(py)    
     left, right = int(minimum(px)), int(maximum(px))
     top, bottom = int(minimum(py)), int(maximum(py))
-    @inbounds for x=left:right
+    for x=left:right     
         ys = Set{Int64}()
         j = length(px)
         for i=1:length(px)            
@@ -41,8 +41,8 @@ function fillpoly!{T,P<:Number}(M::Matrix{T}, px::Vector{P}, py::Vector{P}, valu
         if length(ys) % 2 == 1
             push!(ys, ys[end])
         end
-        for i=1:2:length(ys)
-            M[ys[i]:ys[i+1], x] = value
+        for i=1:2:length(ys)           
+            M[ys[i]:ys[i+1], x] = value  # <-- bounds error here!
         end
     end
     return M

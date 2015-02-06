@@ -1,53 +1,28 @@
 
+# u ~ x ~ j
+# v ~ y ~ i
 
 
-function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})    
-    A = zeros(1, 6)   # affine transformation parameters    
-    warped = zeros(eltype(img), size(img))
-    for t=1:size(trigs, 1)
-        # compute warp parameters (A) for translation from *target to source* 
-        # then get pixel values from source and copy them back to target
-        U = trg[squeeze(trigs[t, :], 1), 1] - 1
-        V = trg[squeeze(trigs[t, :], 1), 2] - 1       
-        
-        X = src[squeeze(trigs[t, :], 1), 1] - 1
-        Y = src[squeeze(trigs[t, :], 1), 2] - 1
-        
-        denom = (U[2] - U[1]) * (V[3] - V[1]) - (V[2] - V[1]) * (U[3] - U[1])
+function source_point_mat(X, Y)
+    x1, x2, x3 = X
+    y1, y2, y3 = Y    
+    F = [x1 x2 x3; y1 y2 y3; 1 1 1]
+    F
+end
 
-        A[1] = X[1] + ((V[1] * (U[3] - U[1]) - U[1]*(V[3] - V[1])) * (X[2] - X[1])
-                       + (U[1] * (V[2] - V[1]) - V[1]*(U[2] - U[1])) * (X[3] - X[1])) / denom
-        A[2] = ((V[3] - V[1]) * (X[2] - X[1]) - (V[2] - V[1]) * (X[3] - X[1])) / denom
-        A[3] = ((U[2] - U[1]) * (X[3] - X[1]) - (U[3] - U[1]) * (X[2] - X[1])) / denom
-        
-        A[4] = Y[1] + ((V[1] * (U[3] - U[1]) - U[1] * (V[3] - V[1])) * (Y[2] - Y[1])
-                       + (U[1] * (V[2] - V[1]) - V[1]*(U[2] - U[1])) * (Y[3] - Y[1])) / denom
-        A[5] = ((V[3] - V[1]) * (Y[2] - Y[1]) - (V[2] - V[1]) * (Y[3] - Y[1])) / denom
-        A[6] = ((U[2] - U[1]) * (Y[3] - Y[1]) - (U[3] - U[1]) * (Y[2] - Y[1])) / denom
+function target_point_mat(U, V)
+    u1, u2, u3 = U
+    v1, v2, v3 = V
+    T = [u1 u2 u3; v1 v2 v3]
+    T
+end
 
-        mask = poly2mask(V, U, size(img)...)
-        v, u = findn(mask)     # or u, v = ...?
 
-        # ind_base = v + (u - 1) * resolution
-
-        v = v - 1
-        u = u - 1
-        wx = A[1] + A[2] .* u + A[3] .* v + 1
-        wy = A[4] + A[5] .* u + A[6] .* v + 1
-        
-        # ind_warped = int(wy) + (int(wx) - 1) * image_size
-
-        # warped[ind_base] = img[ind_warped]
-
-        for i=1:length(v)
-            if wy[i] <= size(img, 1) && wx[i] <= size(img, 2)
-                warped[v[i], u[i]] = img[int(wy[i]), int(wx[i])]
-            end
-        end       
-    end
-    viewtri(img, src, trigs)
-    view(warped)
-    return warped
+function affine_params(X, Y, U, V)
+    F = source_point_mat(X, Y)
+    T = target_point_mat(U, V)
+    M = T * inv(F)
+    M
 end
 
 
@@ -56,18 +31,75 @@ function viewfilled(v, u, sz)
     u = int(u)
     m = zeros(sz)
     for i=1:length(v)
-        m[v[i], u[i]] = 1       
+        if v[i] <= sz[1] && u[i] <= sz[2]
+            m[v[i], u[i]] = 1       # BoundsError!
+        end
     end
     view(m)
 end
 
 
+isdefined(:imgs) || (imgs = read_images(IMG_DIR, 200))
+isdefined(:shapes) || (shapes = read_landmarks(LM_DIR, 200))
+
+
+
+warp_pixel(M, x::Float64, y::Float64) = M * [x, y, 1]
+
+
+function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
+    warped = zeros(eltype(img), size(img))    
+    for t=1:size(trigs, 1)    
+        tr = squeeze(trigs[t, :], 1)
+        Y = src[tr, 1]
+        X = src[tr, 2]
+        
+        V = trg[tr, 1]
+        U = trg[tr, 2]
+               
+        # warp parameters from target (U, V) to source (X, Y)
+        M = affine_params(U, V, X, Y)
+        
+        mask = poly2mask(U, V, size(img)...)
+        vs, us = findn(mask)
+        
+        # for every pixel in target triangle we find corresponding pixel in source
+        # and copy its value
+        for i=1:length(vs)
+            u, v = us[i], vs[i]
+            x, y = warp_pixel(M, float64(u), float64(v))
+            if 1 <= y && y <= size(img, 1) && 1 <= x && x <= size(img, 2)                
+                warped[v, u] = img[int(y), int(x)]
+            end
+        end
+        
+    end
+    warped
+end
+
+
+
+
 function test_warp()
-    # imgs = read_images(IMG_DIR, 200)
-    # shapes = read_landmarks(LM_DIR, 200)
+    img = rawdata(imread(expanduser("~/Downloads/face.png")))
+    src = Float64[86 37; 76 217; 158 136]
+    trg = Float64[86 37; 76 217; 240 136]
+    trigs = delaunayindexes(src)
+    view(img)
+    wimg = warp(img, src, trg, trigs)    
+    view(wimg)
+end
+
+
+
+function test_warp_real()
     src_k = 200
-    trg_k = 190
+    trg_k = 1
+    src = shapes[src_k]
+    trg = shapes[trg_k]
     trigs = delaunayindexes(shapes[src_k])
-    wimg = warp(imgs[src_k], shapes[src_k], shapes[trg_k], trigs)
+    wimg = warp(imgs[src_k], shapes[src_k], shapes[trg_k], trigs)    
+    view(img)
+    view(imgs[trg_k])
     view(wimg)
 end
