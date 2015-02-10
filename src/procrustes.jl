@@ -39,13 +39,14 @@ end
 
 
 function align_shapes(shapes::Vector{Shape}; n_iter=50)
-    shapes = copy(shapes)       # copy shape array to avoid modification or original array    
-    for it=1:n_iter
-        mean_shape = mean(shapes)
+    shapes = copy(shapes)       # copy shape array to avoid modification or original array
+    mean_shape = mean(shapes)
+    for it=1:n_iter        
         for i=1:length(shapes)
             _, shapes[i], _ = procrustes(mean_shape, shapes[i])
         end
+        mean_shape = mean(shapes)
     end
-    return shapes
+    return mean_shape, shapes
 end
 
