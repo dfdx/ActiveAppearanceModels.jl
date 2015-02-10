@@ -1,2 +1,3 @@
 # AAM.jl
-Active Appearance Models
+
+This is a work in progress aiming to reimplement active appearance models in Julia.
