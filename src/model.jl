@@ -1,30 +1,18 @@
 
 typealias Shape Matrix{Float64}
 
-type ShapeModel
-    s0::Shape
-    S::Matrix{Float64}
-end
-
-type TextureModel
-    
-end
 
 type AAModel
-    npoints::Int  # number of points in a model
-    scales::Vector{Int8} #  = [1, 2]
-    s0::Shape
-    shape_models::Vector{ShapeModel} # one per scale  #  = Array(Shape, nscales)
-    texture_models::Vector{TextureModel} # one per scale  # = Array(Texture, nscales)    
+    np::Int
+    s0::Vector{Float64}
+    s_star::Matrix{Float64}
+    S::Matrix{Float64}        
 end
 
-function AAModel(npoints::Int, scales::Vector{Int})
-    nscales = length(scales)
-    AAModel(npoints, scales, Array(Float64, npoints, 2),
-            Array(ShapeModel, nscales), Array(TextureModel, nscales))    
-end
 
-Base.show(io::IO, m::AAModel) = print(io, "AAModel($(m.npoints),$(int64(m.scales)))")
+AAModel() = AAModel(-1, zeros(1), zeros(1, 1), zeros(1, 1))
+
+Base.show(io::IO, m::AAModel) = print(io, "AAModel($(m.np))")
 
 
 
