@@ -3,33 +3,6 @@
 using MultivariateStats
 
 
-##      s1_star = AAM.s0;
-## 	s2_star(1:np) = -AAM.s0(np+1:end);
-## 	s2_star(np+1:2*np) = AAM.s0(1:np);
-## 	s3_star(1:np) = ones(np,1);
-## 	s3_star(np+1:2*np) = zeros(np,1);
-## 	s4_star(1:np) = zeros(np,1);
-## 	s4_star(np+1:2*np) = ones(np,1);
-
-## 	% Stack the basis we found before with the shape basis so
-## 	% we can orthonormalize
-## 	s_star_pc(:,1) = s1_star;
-## 	s_star_pc(:,2) = s2_star;
-## 	s_star_pc(:,3) = s3_star;
-## 	s_star_pc(:,4) = s4_star;
-
-## 	s_star_pc(:,5:size(pc,2)+4) = pc;
-
-
-## 	% Orthogonalize the basis (should already be close to orthogonal)
-## 	s_star_pc = gs_orthonorm(s_star_pc);
-
-## 	% Basis for the global shape transform
-## 	AAM.s_star = s_star_pc(:,1:4);
-## 	% Basis for the shape model
-## 	AAM.s = s_star_pc(:,5:end);
-
-
 # add gloabl shape transformation parameters and orthonormalize all vectors
 function global_shape_transform(s0, pc)
     npc = size(pc, 2)
@@ -53,41 +26,84 @@ function global_shape_transform(s0, pc)
 end
 
 
-function init_shape_model!(aam::AAModel, shapes::Vector{Shape})
-    mean_shape, shapes_aligned = align_shapes(shapes)
-    # do we need to move shape center to origin?
-    mini = minimum(mean_shape[:, 1])
-    minj = minimum(mean_shape[:, 2])
-    maxi = maximum(mean_shape[:, 1])
-    maxj = maximum(mean_shape[:, 2])
-    modelw = ceil(maxj - minj + 3)
-    modelh = ceil(maxi - mini + 3)
-    shape_mat = datamatrix(Shape[shape .- mean_shape for shape in shapes_aligned])
-    shape_pca = fit(PCA, shape_mat)
-    pc = projection(shape_pca)
-    
-    s0 = flatten(mean_shape)    
-    s_star, S = global_shape_transform(s0, pc)
-    
-    aam.s0 = s0
-    aam.s_star = s_star
-    aam.S = S
+function warp_maps(m::AAModel)
+    trigs = delaunayindexes(reshape(m.s0, int(length(m.s0) / 2), 2))
+    modelh, modelw = m.frame.h, m.frame.w
+    warp_map = zeros(Int, modelh, modelw)
+    alpha_coords = zeros(modelh, modelw)
+    beta_coords = zeros(modelh, modelw)
+    for j=1:modelw
+        for i=1:modelh
+            for k=1:size(trigs, 1)
+                t = trigs[k, :]				
+                i1 = m.s0[t[1]]
+                j1 = m.s0[m.np + t[1]]
+                i2 = m.s0[t[2]]
+                j2 = m.s0[m.np + t[2]]
+                i3 = m.s0[t[3]]
+                j3 = m.s0[m.np + t[3]]
+                                
+                den = (i2 - i1) * (j3 - j1) - (j2 - j1) * (i3 - i1)
+                alpha = ((i - i1) * (j3 - j1) - (j - j1) * (i3 - i1)) / den
+                beta = ((j - j1) * (i2 - i1) - (i - i1) * (j2 - j1)) / den
+                
+                if alpha >= 0 && beta >= 0 && (alpha + beta) <= 1
+                    # found the triangle, save data to the bitmaps and break
+                    warp_map[i, j] = k
+                    alpha_coords[i, j] = alpha
+                    beta_coords[i,j] = beta
+                    break;
+                end                
+            end
+        end
+    end
+    return warp_map, alpha_coords, beta_coords
 end
 
 
+function init_shape_model!(m::AAModel, shapes::Vector{Shape})
+    m.np = size(shapes[1], 1)
+    mean_shape, shapes_aligned = align_shapes(shapes)
+    # do we need to move shape center to origin?
+    m.frame = ModelFrame(int(minimum(mean_shape[:, 1])), int(minimum(mean_shape[:, 2])),
+                         int(maximum(mean_shape[:, 1])), int(maximum(mean_shape[:, 2])))    
+    shape_mat = datamatrix(Shape[shape .- mean_shape for shape in shapes_aligned])
+    shape_pca = fit(PCA, shape_mat)
+    pc = projection(shape_pca)
+    # base shape, global transform shape and transformation matrix
+    m.s0 = flatten(mean_shape)    
+    m.s_star, m.S = global_shape_transform(m.s0, pc)
+    # precomputed helpers
+    m.warp_map, m.alpha_coords, m.beta_coords = warp_maps(m)
+end
+
+
+
+function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
+    app_mat = zeros(m.frame.h * m.frame.w, length(imgs))
+    trigs = delaunayindexes(shapes[1])
+    for i=1:length(imgs)
+        warped = warp(imgs[i], shapes[i], reshape(m.s0, m.np, 2), trigs)
+        warped_frame = warped[m.frame.mini-1:m.frame.maxi+1, m.frame.minj-1:m.frame.maxj+1]
+        app_mat[:, i] = flatten(warped_frame)
+    end
+    m.A0 = squeeze(mean(app_mat, 2), 2)
+    m.A = projection(fit(PCA, app_mat .- m.A0))
+    di, dj = gradient2d(reshape(m.A0, m.frame.h, m.frame.w), m.warp_map)
+    m.dA0 = Grad2D(di, dj)
+end
 
 
 
 function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
     @assert length(imgs) == length(shapes) "Different number of images and landmark sets"
-    @assert(maximum(imgs) <= 1 && minimum(imgs) >= 0, "Images should be in Float64 format " +
-            "with values in [0..1]")
-    ns = length(shapes)                                      # number of shapes
-    np = size(shapes[1], 1)                                  # number of points in each shape
-    nc = length(size(imgs[1])) == 3 ? size(imgs[1], 3) : 1   # number of colors
-    m.np = np
+    @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
+            "Images should be in Float64 format with values in [0..1]")
+    m = AAModel()   
     init_shape_model!(m, shapes)
-
+    init_app_model!(m, imgs, shapes)
+    
+    
 
 
 
@@ -98,6 +114,6 @@ end
 function test_train()
     imgs = read_images(IMG_DIR, 1000)
     shapes = read_landmarks(LM_DIR, 1000)
-    m = AAModel(68)
+    m = AAModel()
     # train(m, imgs, all_lms)
 end
