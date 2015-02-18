@@ -21,17 +21,24 @@ end
 
 
 type AAModel
+    np::Int
+    frame::ModelFrame
+    warp_map::Matrix{Int}
+    alpha_coords::Matrix{Float64}
+    beta_coords::Matrix{Float64}
+    trigs::Matrix{Int}
     s0::Vector{Float64}
     s_star::Matrix{Float64}
     S::Matrix{Float64}
     A0::Vector{Float64}
     A::Matrix{Float64}
     dA0::Grad2D
-    np::Int
-    frame::ModelFrame
-    warp_map::Matrix{Int}
-    alpha_coords::Matrix{Float64}
-    beta_coords::Matrix{Float64}    
+    dW_dp::Array{Float64, 4}
+    dN_dq::Array{Float64, 4}
+    SD::Matrix{Float64}
+    H::Matrix{Float64}
+    invH::Matrix{Float64}
+    R::Matrix{Float64}
     AAModel() = new()
 end
 
