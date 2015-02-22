@@ -32,3 +32,9 @@ function gs_orthonorm(M)
     end
     return O[:, 1:k-1]
 end    
+
+
+function nview(img::Matrix{Float64})
+    mn, mx = minimum(img), maximum(img)
+    view((img - mn) / (mx - mn))
+end

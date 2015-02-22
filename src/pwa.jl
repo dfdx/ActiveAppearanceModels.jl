@@ -26,13 +26,7 @@ function affine_params(X, Y, U, V)
 end
 
 
-isdefined(:imgs) || (imgs = read_images(IMG_DIR, 200))
-isdefined(:shapes) || (shapes = read_landmarks(LM_DIR, 200))
-
-
-
 warp_pixel(M, x::Float64, y::Float64) = M * [x, y, 1]
-
 
 function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
     warped = zeros(eltype(img), size(img))    
@@ -71,9 +65,9 @@ function global_params_to_affine(m::AAModel, q::Vector{Float64})
     warped = zeros(2, 3)
     for i=1:3
         base[1, i] = m.s0[t[i]] # squeeze?
-        base[2, i] = m.s0[np+t[i]]
-        warped[1, i] = base[1, i] + m.s_star(t[i], :) * q'
-        warped[2, i] = base[2, i] + m.s_star(np+t[i], :) * q'
+        base[2, i] = m.s0[m.np+t[i]]
+        warped[1, i] = base[1, i] + m.s_star[t[i], :] * q'
+        warped[2, i] = base[2, i] + m.s_star[m.np+t[i], :] * q'
     end
 
     den = ((base[1,2] - base[1,1]) * (base[2,3] - base[2,1]) -
