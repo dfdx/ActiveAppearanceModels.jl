@@ -31,8 +31,6 @@ end
 
 rawdata{T<:FixedPoint}(img::Array{Gray{T}, 2}) = convert(Array{Float64, 2}, img)
 rawdata(img::Image) = rawdata(data(img)')
-
-
 function read_images(img_dir::String, n=-1)
     img_files = sort(readdir(img_dir))
     img_paths = [joinpath(img_dir, img_file) for img_file in img_files]

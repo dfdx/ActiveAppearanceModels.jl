@@ -2,7 +2,6 @@
 # u ~ x ~ j
 # v ~ y ~ i
 
-
 function source_point_mat(X, Y)
     x1, x2, x3 = X
     y1, y2, y3 = Y    
@@ -59,6 +58,7 @@ function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
 end
 
 
+# global trasnformation params? q-params?
 function global_params_to_affine(m::AAModel, q::Vector{Float64})
     t = m.trigs[1, :]
     base = zeros(2, 3)
@@ -101,6 +101,47 @@ function global_params_to_affine(m::AAModel, q::Vector{Float64})
     tr = [a1 a4]
     A = [a2 a5; a3 a6]
     return A, tr
+end
+
+
+function compose_warps(m::AAModel, shape::Shape, incr::Shape)
+    nt = zeros(m.np)
+    comp_warp = zeros(m.np, 2)
+    ntrigs = size(m.trigs, 1)
+    for i=1:ntrigs
+        t = m.trigs[i, :]
+        nt[t[1]] += 1
+        nt[t[2]] += 1
+        nt[t[3]] += 1
+        for k=1:3
+            t2 = copy(t)
+            t2[1] = t[k]
+            t2[k] = t[1]
+            # vertices of the triangle in the mean shape
+            i1 = m.s0[t2[1]]
+            j1 = m.s0[m.np + t2[1]]
+            i2 = m.s0[t2[2]]
+            j2 = m.s0[m.np + t2[2]]
+            i3 = m.s0[t2[3]]
+            j3 = m.s0[m.np + t2[3]]
+
+            i_coord = incr[t2[1], 1]
+            j_coord = incr[t2[1], 2]
+
+            den = (i2 - i1) * (j3 - j1) - (j2 - j1) * (i3 - i1)
+            alpha = ((i_coord - i1) * (j3 - j1) -
+                     (j_coord - j1) * (i3 - i1)) / den
+            beta = ((j_coord - j1) * (i2 - i1) -
+                    (i_coord - i1) * (j2 - j1)) / den
+            comp_warp[t2[1], :] =
+                (comp_warp[t2[1],:] + 
+                 alpha * (shape[t2[2],:] - shape[t2[1],:]) + 
+                 beta * (shape[t2[3],:] - shape[t2[1],:]))
+            
+        end                
+    end
+    comp_warp = shape .+ comp_warp ./ repmat(nt, 1, 2)
+    return comp_warp
 end
 
 
