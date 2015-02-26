@@ -58,16 +58,15 @@ function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
 end
 
 
-# global trasnformation params? q-params?
-function global_params_to_affine(m::AAModel, q::Vector{Float64})
+function q_params_to_affine(m::AAModel, q::Vector{Float64})
     t = m.trigs[1, :]
     base = zeros(2, 3)
     warped = zeros(2, 3)
     for i=1:3
-        base[1, i] = m.s0[t[i]] # squeeze?
+        base[1, i] = m.s0[t[i]]
         base[2, i] = m.s0[m.np+t[i]]
-        warped[1, i] = base[1, i] + m.s_star[t[i], :] * q'
-        warped[2, i] = base[2, i] + m.s_star[m.np+t[i], :] * q'
+        warped[1, i] = (base[1, i] + m.s_star[t[i], :] * q)[1]
+        warped[2, i] = (base[2, i] + m.s_star[m.np+t[i], :] * q)[1]
     end
 
     den = ((base[1,2] - base[1,1]) * (base[2,3] - base[2,1]) -
