@@ -16,7 +16,6 @@ viewshape(mat::Matrix{Float64}, lms::Shape) = viewshape(convert(Image, mat), lms
 function viewtri(img::Image, shape::Shape, trigs::Matrix{Int64})
     imgc, img2 = view(img)
     for i=1:size(trigs, 1)
-        println(i)
         a = (shape[trigs[i, 1], 2], shape[trigs[i, 1], 1])
         b = (shape[trigs[i, 2], 2], shape[trigs[i, 2], 1])
         c = (shape[trigs[i, 3], 2], shape[trigs[i, 3], 1])
