@@ -34,7 +34,9 @@ function gs_orthonorm(M)
 end    
 
 
-function nview(img::Matrix{Float64})
-    mn, mx = minimum(img), maximum(img)
-    view((img - mn) / (mx - mn))
+function StatsBase.describe{T,N}(A::Array{T,N})
+    println("min    : $(minimum(A))")
+    println("mean   : $(mean(A))")
+    println("median : $(median(A))")
+    println("max    : $(maximum(A))")    
 end

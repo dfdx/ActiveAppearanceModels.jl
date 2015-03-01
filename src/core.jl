@@ -1,5 +1,6 @@
 
 VERSION < v"0.4-" && using Docile
+using StatsBase
 
 include("utils.jl")
 include("model.jl")
@@ -20,6 +21,6 @@ function test_fit2d()
     m = AAModel()
     @time train(m, imgs, shapes)
     img = imgs[1]
-    init_shape = shapes[1] + 5*rand(m.np, 2)
+    init_shape = shapes[1] + 5
     @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 10)
 end

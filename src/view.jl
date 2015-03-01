@@ -1,14 +1,15 @@
 
 using Images, ImageView
 using VoronoiDelaunay
+import Gadfly: plot, Geom
+
 
 function viewshape(img::Image, lms::Shape)
     imgc, img2 = view(img)
     for i=1:size(lms, 1)
-        annotate!(imgc, img2, AnnotationPoint(lms[i, 2], lms[i, 1], shape='.', size=4,
-                                              color=RGB(1, 0, 0)))
+        annotate!(imgc, img2, AnnotationPoint(lms[i, 2], lms[i, 1], shape='.',
+                                              size=4, color=RGB(1, 0, 0)))
     end
-    return imgc, img2
 end
 viewshape(mat::Matrix{Float64}, lms::Shape) = viewshape(convert(Image, mat), lms)
 
@@ -29,11 +30,9 @@ viewtri(mat::Matrix{Float64}, shape::Shape, trigs::Matrix{Int64}) =
     viewtri(convert(Image, mat), shape, trigs)
 
 
+histogram{T,N}(A::Array{T,N}) = plot(x=flatten(A), Geom.histogram)
 
-function test_viewtri()
-    n = 100
-    imgs = read_images(IMG_DIR, 200)
-    shapes = read_landmarks(LM_DIR, 200)
-    trigs = delaunayindexes(shapes[n])
-    viewtri(imgs[n], shapes[n], trigs)
+function nview(img::Matrix{Float64})
+    mn, mx = minimum(img), maximum(img)
+    view((img - mn) / (mx - mn))
 end
