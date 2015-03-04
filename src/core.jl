@@ -14,10 +14,13 @@ include("train.jl")
 include("fit.jl")
 include("view.jl")
 
+using Cootes
 
 function test_fit2d()    
-    isdefined(:imgs) || (imgs = read_images(IMG_DIR, 1000))
-    isdefined(:shapes) || (shapes = read_landmarks(LM_DIR, 1000))
+    # isdefined(:imgs) || (imgs = load_images(1000))
+    # isdefined(:shapes) || (shapes = load_shapes(1000))
+    imgs = Cootes.load_images()
+    shapes = Cootes.load_shapes()
     m = AAModel()
     @time train(m, imgs, shapes)
     img = imgs[1]

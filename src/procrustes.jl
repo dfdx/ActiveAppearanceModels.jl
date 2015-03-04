@@ -31,7 +31,7 @@ function procrustes(X::Shape, Y::Shape)
 
     c = mu_x - b * (mu_y * T)
     
-    tform = ["rotation" => T, "scale" => b, "translation" => c]
+    tform = Dict("rotation" => T, "scale" => b, "translation" => c)
     return d, Z, tform
     
 end
