@@ -65,6 +65,11 @@ function init_shape_model!(m::AAModel, shapes::Vector{Shape})
     m.np = size(shapes[1], 1)
     m.trigs = delaunayindexes(shapes[1])    
     mean_shape, shapes_aligned = align_shapes(shapes)
+
+    # TODO: this is temporary hack
+    mean_shape *= 1.33
+    shapes_aligned *= 1.33
+    
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
@@ -81,7 +86,8 @@ function init_shape_model!(m::AAModel, shapes::Vector{Shape})
 end
 
 
-function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
+function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}},
+                         shapes::Vector{Shape})
     app_mat = zeros(m.frame.h * m.frame.w, length(imgs))
     # trigs = delaunayindexes(shapes[1])
     for i=1:length(imgs)
@@ -96,6 +102,7 @@ function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vect
 end
 
 
+# TODO: more correctly - warp-and-global-transformation-jacobian
 function warp_jacobian(m::AAModel)
     # jacobians have form (i, j, axis, param_index)
     dW_dp = zeros(m.frame.h, m.frame.w, 2, size(m.S, 2))
@@ -131,8 +138,10 @@ function warp_jacobian(m::AAModel)
 
                     dW_dij = 1 - alpha - beta
 
-                    dW_dp[i,j,:,:] = squeeze(dW_dp[i,j,:,:], (1, 2)) + dW_dij * [dik_dp; djk_dp]
-                    dN_dq[i,j,:,:] = squeeze(dN_dq[i,j,:,:], (1, 2)) + dW_dij * [dik_dq; djk_dq]
+                    dW_dp[i,j,:,:] = (squeeze(dW_dp[i,j,:,:], (1, 2)) +
+                                      dW_dij * [dik_dp; djk_dp])
+                    dN_dq[i,j,:,:] = (squeeze(dN_dq[i,j,:,:], (1, 2)) +
+                                      dW_dij * [dik_dq; djk_dq])
                 end
             end
         end
@@ -180,7 +189,7 @@ function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
     @assert length(imgs) == length(shapes) "Different number of images and landmark sets"
     @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
             "Images should be in Float64 format with values in [0..1]")
-    init_shape_model!(m, shapes)
+    init_shape_model!(m, shapes)   
     init_app_model!(m, imgs, shapes)
     m.dW_dp, m.dN_dq = warp_jacobian(m)
     m.SD = sd_images(m)
@@ -188,13 +197,4 @@ function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
     m.invH = inv(m.H)
     m.R = m.invH * m.SD
     return m
-end
-
-
-
-function test_train()
-    imgs = read_images(IMG_DIR, 1000)
-    shapes = read_landmarks(LM_DIR, 1000)
-    m = AAModel()
-    m = train(m, imgs, shapes)
 end

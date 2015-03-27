@@ -10,6 +10,7 @@ function viewshape(img::Image, lms::Shape)
         annotate!(imgc, img2, AnnotationPoint(lms[i, 2], lms[i, 1], shape='.',
                                               size=4, color=RGB(1, 0, 0)))
     end
+    imgc, img2
 end
 viewshape(mat::Matrix{Float64}, lms::Shape) = viewshape(convert(Image, mat), lms)
 
@@ -24,6 +25,7 @@ function viewtri(img::Image, shape::Shape, trigs::Matrix{Int64})
         annotate!(imgc, img2, AnnotationLine(b, c))
         annotate!(imgc, img2, AnnotationLine(c, a))
     end
+    imgc, img2
 end
 
 viewtri(mat::Matrix{Float64}, shape::Shape, trigs::Matrix{Int64}) =

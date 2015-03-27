@@ -8,11 +8,11 @@ function fit2d(m::AAModel, img::Matrix{Float64}, init_shape::Shape, max_it::Int)
     while iter <= max_it
         wrp = warp(img, cur_shape, mean_shape, m.trigs)
         error_img = flatten(wrp[1:m.frame.h, 1:m.frame.w]) .- m.A0
-        println("sum of errors: $(sum(error_img))")
-        if true # iter > 5 || max_it < 10
+        println("SSE: $(sum(error_img .^ 2))")
+        if iter > 5 || max_it < 10
             delta_qp = m.R * error_img
-            d_s0_ = reshape(m.s0 - m.S * delta_qp[5:end], m.np, 2)            
             A, trans = q_params_to_affine(m, -delta_qp[1:4])
+            d_s0_ = reshape(m.s0 - m.S * delta_qp[5:end], m.np, 2)            
             d_s0 = d_s0_ * A + repmat(trans, m.np, 1)
             comp_warp = compose_warps(m, cur_shape, d_s0)
         else
@@ -25,10 +25,10 @@ function fit2d(m::AAModel, img::Matrix{Float64}, init_shape::Shape, max_it::Int)
         iter += 1
         cur_shape = comp_warp
         # viewtri(img, cur_shape, m.trigs)
-        if iter % 10 == 0
-            # viewtri(img, cur_shape, m.trigs)
-            viewshape(img, cur_shape)
-        end
+        ## if iter % 2 == 0
+        ##     # viewtri(img, cur_shape, m.trigs)
+        ##     viewshape(img, cur_shape)
+        ## end
     end
     fitted_shape = cur_shape
     wrp = warp(img, cur_shape, mean_shape, m.trigs)
