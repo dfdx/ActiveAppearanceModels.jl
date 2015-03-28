@@ -61,15 +61,8 @@ function warp_maps(m::AAModel)
 end
 
 
-function init_shape_model!(m::AAModel, shapes::Vector{Shape})
-    m.np = size(shapes[1], 1)
-    m.trigs = delaunayindexes(shapes[1])    
-    mean_shape, shapes_aligned = align_shapes(shapes)
-
-    # TODO: this is temporary hack
-    mean_shape *= 1.33
-    shapes_aligned *= 1.33
-    
+function init_shape_model(m::AAModel, shapes::Vector{Shape})
+    mean_shape, shapes_aligned = align_shapes(shapes) 
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
@@ -81,12 +74,11 @@ function init_shape_model!(m::AAModel, shapes::Vector{Shape})
     # base shape, global transform shape and transformation matrix
     m.s0 = flatten(mean_shape)
     m.s_star, m.S = global_shape_transform(m.s0, pc)
-    # precomputed helpers
-    m.warp_map, m.alpha_coords, m.beta_coords = warp_maps(m)
+    return m.frame, m.s0, m.s_star, m.S
 end
 
 
-function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}},
+function init_app_model(m::AAModel, imgs::Vector{Matrix{Float64}},
                          shapes::Vector{Shape})
     app_mat = zeros(m.frame.h * m.frame.w, length(imgs))
     # trigs = delaunayindexes(shapes[1])
@@ -95,10 +87,11 @@ function init_app_model!(m::AAModel, imgs::Vector{Matrix{Float64}},
         warped_frame = warped[1:m.frame.h, 1:m.frame.w]
         app_mat[:, i] = flatten(warped_frame)
     end
-    m.A0 = squeeze(mean(app_mat, 2), 2)
-    m.A = projection(fit(PCA, app_mat .- m.A0))
-    di, dj = gradient2d(reshape(m.A0, m.frame.h, m.frame.w), m.warp_map)
-    m.dA0 = Grad2D(di, dj)
+    A0 = squeeze(mean(app_mat, 2), 2)
+    A = projection(fit(PCA, app_mat .- A0))
+    di, dj = gradient2d(reshape(A0, m.frame.h, m.frame.w), m.warp_map)
+    dA0 = Grad2D(di, dj)
+    return A0, A, dA0
 end
 
 
@@ -184,13 +177,18 @@ function sd_images(m)
     return SDf
 end
 
-
+# data format - ? Vecotr{Array{Float64, 3}}? Int8?
 function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
-    @assert length(imgs) == length(shapes) "Different number of images and landmark sets"
+    @assert(length(imgs) >=  1, "At least one image is required")
+    @assert(length(imgs) == length(shapes),
+            "Different number of images and landmark sets")
     @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
-            "Images should be in Float64 format with values in [0..1]")
-    init_shape_model!(m, shapes)   
-    init_app_model!(m, imgs, shapes)
+            "Images should be in Float64 format with values in [0..1]")    
+    m.np = size(shapes[1], 1)
+    m.trigs = delaunayindexes(shapes[1])
+    m.frame, m.s0, m.s_star, m.S = init_shape_model(m, shapes)
+    m.warp_map, m.alpha_coords, m.beta_coords = warp_maps(m)
+    m.A0, m.A, m.dA0 = init_app_model(m, imgs, shapes)
     m.dW_dp, m.dN_dq = warp_jacobian(m)
     m.SD = sd_images(m)
     m.H = m.SD * m.SD'
