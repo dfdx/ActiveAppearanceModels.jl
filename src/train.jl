@@ -78,25 +78,24 @@ function init_shape_model(m::AAModel, shapes::Vector{Shape})
 end
 
 
-function init_app_model(m::AAModel, imgs::Vector{Matrix{Float64}},
+function init_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
                          shapes::Vector{Shape})
-    app_mat = zeros(m.frame.h * m.frame.w, length(imgs))
+    app_mat = zeros(m.frame.h * m.frame.w * m.nc, length(imgs))
     # trigs = delaunayindexes(shapes[1])
     for i=1:length(imgs)
         warped = warp(imgs[i], shapes[i], reshape(m.s0, m.np, 2), m.trigs)
-        warped_frame = warped[1:m.frame.h, 1:m.frame.w]
+        warped_frame = warped[1:m.frame.h, 1:m.frame.w, :]
         app_mat[:, i] = flatten(warped_frame)
     end
-    A0 = squeeze(mean(app_mat, 2), 2)
+    A0 = squeeze(mean(app_mat, 2), 2)    
     A = projection(fit(PCA, app_mat .- A0))
     di, dj = gradient2d(reshape(A0, m.frame.h, m.frame.w), m.warp_map)
-    dA0 = Grad2D(di, dj)
+    dA0 = Grad2D(di, dj)    
     return A0, A, dA0
 end
 
 
-# TODO: more correctly - warp-and-global-transformation-jacobian
-function warp_jacobian(m::AAModel)
+function jacobians(m::AAModel)
     # jacobians have form (i, j, axis, param_index)
     dW_dp = zeros(m.frame.h, m.frame.w, 2, size(m.S, 2))
     dN_dq = zeros(m.frame.h, m.frame.w, 2, 4)
@@ -178,18 +177,21 @@ function sd_images(m)
 end
 
 # data format - ? Vecotr{Array{Float64, 3}}? Int8?
-function train(m::AAModel, imgs::Vector{Matrix{Float64}}, shapes::Vector{Shape})
+function train{N}(m::AAModel,
+                  imgs::Vector{Array{Float64, N}},
+                  shapes::Vector{Shape})
     @assert(length(imgs) >=  1, "At least one image is required")
     @assert(length(imgs) == length(shapes),
             "Different number of images and landmark sets")
     @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
-            "Images should be in Float64 format with values in [0..1]")    
-    m.np = size(shapes[1], 1)
-    m.trigs = delaunayindexes(shapes[1])
+            "Images should be in Float64 format with values in [0..1]")
+    m.nc = N
+    m.np = size(shapes[1], 1)        
     m.frame, m.s0, m.s_star, m.S = init_shape_model(m, shapes)
+    m.trigs = delaunayindexes(shapes[1])
     m.warp_map, m.alpha_coords, m.beta_coords = warp_maps(m)
     m.A0, m.A, m.dA0 = init_app_model(m, imgs, shapes)
-    m.dW_dp, m.dN_dq = warp_jacobian(m)
+    m.dW_dp, m.dN_dq = jacobians(m)
     m.SD = sd_images(m)
     m.H = m.SD * m.SD'
     m.invH = inv(m.H)

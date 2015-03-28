@@ -161,6 +161,6 @@ function gradient2d(M::Matrix{Float64}, mask::Matrix{Int})
             end
         end
     end
-    return di, dj
+    return Grad2D(di, dj)
 end
 

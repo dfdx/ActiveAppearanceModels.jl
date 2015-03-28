@@ -103,8 +103,7 @@ function load_shapes(n=-1)
     for k=1:n_use
         shape_xy = load_shape_from_mat(paths[k])
         shape_ij = [IMG_HEIGHT .- shape_xy[:, 2] shape_xy[:, 1]]
-        shapes[k] = shape_ij
-        
+        shapes[k] = shape_ij        
     end
     return shapes
 end
@@ -113,10 +112,10 @@ function load_images(n=-1)
     files = sort(filter(x->endswith(x, ".bmp"), readdir(COOTES_DATA_DIR)))
     paths = map(x->joinpath(COOTES_DATA_DIR, x), files)
     n_use = n > 0 ? n : length(paths)
-    imgs = Array(Matrix{Float64}, n_use)    
+    imgs = Array(Array{Float64, 3}, n_use)    
     for i=1:n_use
         img_rgb = imread(paths[i])
-        imgs[i] = rawdata(convert(Array{Gray}, img_rgb))                
+        imgs[i] = convert(Array, separate(img_rgb))
     end    
     return imgs
 end

@@ -35,8 +35,10 @@ end
 
 
 function StatsBase.describe{T,N}(A::Array{T,N})
+    println("size   : $(size(A))")
     println("min    : $(minimum(A))")
     println("mean   : $(mean(A))")
     println("median : $(median(A))")
-    println("max    : $(maximum(A))")    
+    println("max    : $(maximum(A))")
+    println("sum    : $(sum(A))")    
 end

@@ -22,6 +22,7 @@ end
 
 type AAModel
     np::Int
+    nc::Int
     frame::ModelFrame
     warp_map::Matrix{Int}
     alpha_coords::Matrix{Float64}

@@ -27,7 +27,8 @@ end
 
 warp_pixel(M, x::Float64, y::Float64) = M * [x, y, 1]
 
-function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
+function warp{N}(img::Array{Float64, N}, src::Shape, trg::Shape,
+                 trigs::Matrix{Int})
     warped = zeros(eltype(img), size(img))    
     for t=1:size(trigs, 1)    
         tr = squeeze(trigs[t, :], 1)
@@ -40,7 +41,7 @@ function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
         # warp parameters from target (U, V) to source (X, Y)
         M = affine_params(U, V, X, Y)
         
-        mask = poly2mask(U, V, size(img)...)
+        mask = poly2mask(U, V, size(img)[1:2]...)
         vs, us = findn(mask)
         
         # for every pixel in target triangle we find corresponding pixel in source
@@ -48,8 +49,8 @@ function warp(img::Matrix{Float64}, src::Shape, trg::Shape, trigs::Matrix{Int})
         for i=1:length(vs)
             u, v = us[i], vs[i]
             x, y = warp_pixel(M, float64(u), float64(v))
-            if 1 <= y && y <= size(img, 1) && 1 <= x && x <= size(img, 2)                
-                warped[v, u] = img[int(y), int(x)]
+            if 1 <= y && y <= size(img, 1) && 1 <= x && x <= size(img, 2)
+                warped[v, u, :] = img[int(y), int(x), :]
             end
         end
         
