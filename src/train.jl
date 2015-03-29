@@ -146,35 +146,51 @@ end
 
 
 function sd_images(m)
-    app_modes = reshape(m.A, m.frame.h, m.frame.w, size(m.A, 2))
-    SD = zeros(m.frame.h, m.frame.w, 4 + size(m.dW_dp, 4))
+    app_modes = reshape(m.A, m.frame.h, m.frame.w, m.nc, size(m.A, 2))
+    SD = zeros(m.frame.h, m.frame.w, m.nc, 4 + size(m.dW_dp, 4))
     # SD images for 4 global transformation parameters
     for i=1:4
-        prj_diff = zeros(size(m.A, 2))
+        prj_diff = zeros(m.nc, size(m.A, 2))
         for j=1:size(m.A, 2)
-            prj_diff[j] = sum(app_modes[:,:,j] .* (m.dA0.di .* m.dN_dq[:,:,1,i] +
-                                                   m.dA0.dj .* m.dN_dq[:,:,2,i]))
+            for c=1:m.nc                
+                prj_diff[c, j] = sum(app_modes[:,:,c,j] .*
+                                     (m.dA0[c].di .* m.dN_dq[:,:,1,i] +
+                                      m.dA0[c].dj .* m.dN_dq[:,:,2,i]))
+            end
         end
-        SD[:,:,i] = m.dA0.di .* m.dN_dq[:,:,1,i] + m.dA0.dj .* m.dN_dq[:,:,2,i]
+        for c=1:m.nc
+            SD[:,:,c,i] = (m.dA0[c].di .* m.dN_dq[:,:,1,i] +
+                           m.dA0[c].dj .* m.dN_dq[:,:,2,i])
+        end
         for j=1:size(m.A, 2)
-            SD[:,:,i] = SD[:,:,i] - prj_diff[j] * app_modes[:,:,j]
-        end
+            for c=1:m.nc
+                SD[:,:,c,i] = SD[:,:,c,i] - prj_diff[c,j] * app_modes[:,:,c,j]
+            end
+        end       
     end
     # SD images for shape parameters
     for i=1:size(m.dW_dp, 4)
-        prj_diff = zeros(size(m.A, 2))
+        prj_diff = zeros(m.nc, size(m.A, 2))
         for j=1:size(m.A, 2)
-            prj_diff[j] = sum(app_modes[:,:,j] .* (m.dA0.di .* m.dW_dp[:,:,1,i] +
-                                                   m.dA0.dj .* m.dW_dp[:,:,2,i]))
+            for c=1:m.nc       
+                prj_diff[c,j] = sum(app_modes[:,:,c,j] .*
+                                    (m.dA0[c].di .* m.dW_dp[:,:,1,i] +
+                                     m.dA0[c].dj .* m.dW_dp[:,:,2,i]))
+            end
         end
-        SD[:,:,i+4] = m.dA0.di .* m.dW_dp[:,:,1,i] + m.dA0.dj .* m.dW_dp[:,:,2,i]
+        for i=m.nc
+            SD[:,:,c,i+4] = (m.dA0[c].di .* m.dW_dp[:,:,1,i] +
+                             m.dA0[c].dj .* m.dW_dp[:,:,2,i])
+        end
         for j=1:size(m.A, 2)
-            SD[:,:,i+4] = SD[:,:,i+4] - prj_diff[j] * app_modes[:,:,j]
+            for c=1:m.nc
+                SD[:,:,c,i+4] = SD[:,:,c,i+4] - prj_diff[c,j] * app_modes[:,:,c,j]
+            end
         end
     end
-    SDf = zeros(size(SD, 3), size(m.A,1))
-    for i=1:size(SD, 3)
-        SDf[i, :] = flatten(SD[:, :, i])
+    SDf = zeros(size(SD, 4), size(m.A, 1))
+    for i=1:size(SD, 4)
+        SDf[i,:] = flatten(SD[:,:,:,i])
     end
     return SDf
 end

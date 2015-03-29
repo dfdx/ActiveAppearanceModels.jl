@@ -34,7 +34,7 @@ viewtri(mat::Matrix{Float64}, shape::Shape, trigs::Matrix{Int64}) =
 
 histogram{T,N}(A::Array{T,N}) = plot(x=flatten(A), Geom.histogram)
 
-function nview(img::Matrix{Float64})
+function nview{N}(img::Array{Float64, N})
     mn, mx = minimum(img), maximum(img)
     view((img - mn) / (mx - mn))
 end

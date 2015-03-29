@@ -19,6 +19,7 @@ type Grad2D
     dj::Matrix{Float64}
 end
 
+Base.show(io::IO, grad::Grad2D) = print(io, "Grad2D$(size(grad.di))")
 
 type AAModel
     np::Int
