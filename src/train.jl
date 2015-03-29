@@ -89,8 +89,11 @@ function init_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
     end
     A0 = squeeze(mean(app_mat, 2), 2)    
     A = projection(fit(PCA, app_mat .- A0))
-    di, dj = gradient2d(reshape(A0, m.frame.h, m.frame.w), m.warp_map)
-    dA0 = Grad2D(di, dj)    
+    mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
+    dA0 = Array(Grad2D, 3)
+    for i=1:m.nc
+        dA0[i] = gradient2d(mean_app[:, :, 1], m.warp_map)
+    end
     return A0, A, dA0
 end
 

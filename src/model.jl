@@ -33,7 +33,7 @@ type AAModel
     S::Matrix{Float64}
     A0::Vector{Float64}
     A::Matrix{Float64}
-    dA0::Grad2D
+    dA0::Vector{Grad2D}
     dW_dp::Array{Float64, 4}
     dN_dq::Array{Float64, 4}
     SD::Matrix{Float64}
