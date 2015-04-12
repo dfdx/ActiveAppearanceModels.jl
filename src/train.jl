@@ -178,7 +178,7 @@ function sd_images(m)
                                      m.dA0[c].dj .* m.dW_dp[:,:,2,i]))
             end
         end
-        for i=m.nc
+        for c=1:m.nc
             SD[:,:,c,i+4] = (m.dA0[c].di .* m.dW_dp[:,:,1,i] +
                              m.dA0[c].dj .* m.dW_dp[:,:,2,i])
         end

@@ -34,16 +34,18 @@ using Cootes
 function test_fit2d()    
     imgs = Cootes.load_images()
     shapes = Cootes.load_shapes()    
-    test_img_idx = 2
+    test_img_idx = 2 # rand(1:length(imgs))
     one_out = [1:test_img_idx-1; test_img_idx+1:length(imgs)]
     m = AAModel()
     @time train(m, imgs[one_out], shapes[one_out])
-    for i=1:5
-        init_shape = shapes[rand(one_out)] .- 5
-        viewtri(img, init_shape, m.trigs)    
-        @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 20)
-        viewtri(img, fitted_shape, m.trigs)        
-        readline(STDIN)
+    img = imgs[test_img_idx]
+    for i=1:1
+        # init_shape = shapes[rand(one_out)] .- 5
+        init_shape = shapes[18]
+        # triplot(img, init_shape, m.trigs)    
+        @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 20);
+        triplot(img, fitted_shape, m.trigs)        
+        # readline(STDIN)
     end
 end
 
