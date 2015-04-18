@@ -36,7 +36,7 @@ using Cootes
 function test_fit2d()    
     imgs = Cootes.load_images()
     shapes = Cootes.load_shapes()    
-    test_img_idx = 2 # rand(1:length(imgs))
+    test_img_idx = 6 # rand(1:length(imgs))
     one_out = [1:test_img_idx-1; test_img_idx+1:length(imgs)]
     m = AAModel()
     @time train(m, imgs[one_out], shapes[one_out])
@@ -45,8 +45,8 @@ function test_fit2d()
         # init_shape = shapes[rand(one_out)] .- 5
         init_shape = shapes[18]
         # triplot(img, init_shape, m.trigs)    
-        @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 20);
-        triplot(img, fitted_shape, m.trigs)        
+        @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 50);
+        triplot(img, fitted_shape, m.trigs)
         # readline(STDIN)
     end
 end
@@ -62,3 +62,29 @@ function test_pa_warp()
     view(r)
 end
 
+
+function multitest()    
+    imgs = Cootes.load_images()
+    shapes = Cootes.load_shapes()    
+    m = AAModel()
+    @time train(m, imgs, shapes)
+    for i=1:10
+        try
+            img_idx = rand(1:length(imgs))
+            shape_idx = rand(1:length(imgs))        
+            # triplot(img, init_shape, m.trigs)    
+            @time fitted_shape, fitted_app =
+                fit2d(m, imgs[img_idx], shapes[shape_idx], 50);
+            triplot(imgs[img_idx], fitted_shape, m.trigs)
+            println("Image #$img_idx; shape #$shape_idx")
+            readline(STDIN)
+        catch e
+            if isa(e, BoundsError)
+                println("Fitting diverged")
+                readline(STDIN)
+            else
+                rethrow()
+            end
+        end
+    end
+end

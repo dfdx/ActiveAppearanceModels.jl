@@ -39,8 +39,8 @@ function pa_warp{N}(src_img::Array{Float64, N}, dst_size::(Int, Int),
 
                 if wi < 1 || wi > size(src_img, 1) ||
                     wj < 1 || wj > size(src_img, 2)
-                    # throw(BoundsError("Warp pixel is out of bounds"))
-                    println("wi=$wi, wj=$wj")
+                    throw(BoundsError("Warp pixel is out of bounds: " *
+                                      "wi=$wi, wj=$wj"))
                 end
 
                 lli = convert(Int, floor(wi))

@@ -39,7 +39,7 @@ end
 
 
 function align_shapes(shapes::Vector{Shape}; n_iter=50)
-    shapes = copy(shapes)       # copy shape array to avoid modification or original array
+    shapes = copy(shapes)
     mean_shape = mean(shapes)
     for it=1:n_iter        
         for i=1:length(shapes)

@@ -39,7 +39,7 @@ function warp_maps(shape::Shape, trigs::Matrix{Int}, modelh::Int, modelw::Int)
     beta_coords = zeros(modelh, modelw)
     for j=1:modelw
         for i=1:modelh
-            for k=1:size(m.trigs, 1)
+            for k=1:size(trigs, 1)
                 t = trigs[k, :]
                 i1 = shape[t[1], 1]
                 j1 = shape[t[1], 2]
