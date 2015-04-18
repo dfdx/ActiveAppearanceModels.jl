@@ -1,21 +1,22 @@
 
 # TODO: merge with pwa.jl
-# TODO: handle the case where dst_shape is a base_shape
 
-function pa_warp{N}(src_img::Array{Float64, N}, 
+function pa_warp{N}(src_img::Array{Float64, N}, dst_size::(Int, Int),
                     src_shape::Shape, dst_shape::Shape,
-                    trigs::Matrix{Int}, h::Int, w::Int)
-    # nt = size(m.trigs, 1)
-    nc = size(img, 3)
-    # assuming destination shape is NOT base shape, computing warp maps for it
-    warp_map, alpha_coords, beta_coords =
-        warp_maps(dst_shape, trigs, h, w)
+                    trigs::Matrix{Int}, warp_map::Matrix{Int},
+                    alpha_coords::Matrix{Float64}, beta_coords::Matrix{Float64};
+                    interp=:bilinear)
+    nc = N
+    h, w = dst_size
+    ## # assuming destination shape is NOT base shape, computing warp maps for it
+    ## warp_map, alpha_coords, beta_coords =
+    ##     warp_maps(dst_shape, trigs, h, w)
     dst_img = zeros(Float64, h, w, nc)
     for j=1:w
-        for i=1:h
+        for i=1:h            
             t = warp_map[i, j]
-            # if t <= 0, pixel is out of destination image
-            if t > 0
+            # if t <= 0, pixel is out of destination shape
+            if t > 0                
                 # index of first vertex of the triangle
                 v1 = trigs[t, 1]
                 i1 = src_shape[v1, 1]
@@ -23,11 +24,11 @@ function pa_warp{N}(src_img::Array{Float64, N},
 
                 v2 = trigs[t, 2]
                 i2 = src_shape[v2, 1]
-                j2 = dst_shape[v2, 2]
+                j2 = src_shape[v2, 2]
                 
                 v3 = trigs[t, 3]
                 i3 = src_shape[v3, 1]
-                j3 = dst_shape[v3, 2]
+                j3 = src_shape[v3, 2]
 
                 wi = (i1 +
                       alpha_coords[i, j] * (i2 - i1) +
@@ -36,7 +37,8 @@ function pa_warp{N}(src_img::Array{Float64, N},
                       alpha_coords[i, j] * (j2 - j1) +
                       beta_coords[i, j] * (j3 - j1))
 
-                if wi < 1 || wi > h || wj < 1 || wj > w
+                if wi < 1 || wi > size(src_img, 1) ||
+                    wj < 1 || wj > size(src_img, 2)
                     # throw(BoundsError("Warp pixel is out of bounds"))
                     println("wi=$wi, wj=$wj")
                 end
@@ -50,27 +52,30 @@ function pa_warp{N}(src_img::Array{Float64, N},
                 f1 = (wi - lli) * (urj - wj)
                 f2 = (uri - wi) * (wj - llj)
                 f3 = (wi - lli) * (wj - llj)
-
-                offset = w * h * nc
+                
                 for c=1:nc
-                    if true # INTERP
-                        # TODO: use multidimentional indexes instead
-                        interpolated = (src_img[lli + h * (llj) + offset] * f0 +
-                                        src_img[uri + h * (llj) + offset] * f1 +
-                                        src_img[lli + h * (urj) + offset] * f2 +
-                                        src_img[uri + h * (urj) + offset] * f3)
-                        
+                    if interp == :bilinear
+                        interpolated = (src_img[lli, llj, c] * f0 +
+                                        src_img[uri, llj, c] * f1 +
+                                        src_img[lli, urj, c] * f2 +
+                                        src_img[uri, urj, c] * f3)
                         dst_img[i, j, c] = interpolated
+                    elseif interp == :nearest
+                        dst_img[i, j, c] =
+                            src_img[convert(Int, wi), convert(Int, wj), c]
                     else
-                        dst_img[i, j, c] = src_img[convert(Int, wi) + h * convert(Int, wj) + offset];
+                        throw("Unknown interpolation type: $interp")
                     end
-                end                
-                return dst_img                
-            end
+                end 
+            end            
         end
     end
-    
-    
-    
-    
+    return dst_img
 end
+
+
+# shortcut for warping shape to the mean shape
+pa_warp{N}(m::AAModel, img::Array{Float64, N}, src_shape::Shape) = 
+    pa_warp(img, (m.frame.h, m.frame.w), src_shape, reshape(m.s0, m.np, 2),
+            m.trigs, m.warp_map, m.alpha_coords, m.beta_coords)
+

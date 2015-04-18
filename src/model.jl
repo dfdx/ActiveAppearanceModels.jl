@@ -13,6 +13,7 @@ type ModelFrame
         new(mini, minj, maxi, maxj, int(ceil(maxi - mini + 3)), int(ceil(maxj - minj + 3)))
 end
 
+Base.size(frame::ModelFrame) = (frame.h, frame.w)
 
 type Grad2D
     di::Matrix{Float64}

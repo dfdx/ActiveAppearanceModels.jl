@@ -51,3 +51,14 @@ function test_fit2d()
     end
 end
 
+function test_pa_warp()
+    imgs = Cootes.load_images()
+    shapes = Cootes.load_shapes()        
+    m = AAModel()
+    @time train(m, imgs, shapes);
+    base_shape = reshape(m.s0, m.np, 2)
+    r = pa_warp(imgs[18], (m.frame.h, m.frame.w), shapes[18], base_shape,
+                m.trigs, m.warp_map, m.alpha_coords, m.beta_coords);
+    view(r)
+end
+

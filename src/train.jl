@@ -48,9 +48,11 @@ function init_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
     app_mat = zeros(m.frame.h * m.frame.w * m.nc, length(imgs))
     # trigs = delaunayindexes(shapes[1])
     for i=1:length(imgs)
-        warped = warp(imgs[i], shapes[i], reshape(m.s0, m.np, 2), m.trigs)
-        warped_frame = warped[1:m.frame.h, 1:m.frame.w, :]
-        app_mat[:, i] = flatten(warped_frame)
+        # warped = warp(imgs[i], shapes[i], reshape(m.s0, m.np, 2), m.trigs)
+        # warped_frame = warped[1:m.frame.h, 1:m.frame.w, :]
+        # TODO: size(ModelFrame)
+        warped = pa_warp(m, imgs[i], shapes[i])
+        app_mat[:, i] = flatten(warped)
     end
     A0 = squeeze(mean(app_mat, 2), 2)    
     A = projection(fit(PCA, app_mat .- A0))
