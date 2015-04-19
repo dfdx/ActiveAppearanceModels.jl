@@ -8,7 +8,7 @@ function fit2d{N}(m::AAModel, img::Array{Float64, N},
     iter = 1
     while iter <= max_it
         # println("Current shape: \n$(cur_shape[1:2, 1:end])")
-        warped = pa_warp(m, img, cur_shape)
+        warped = warp_to_mean_shape(m, img, cur_shape)
         error_img = flatten(warped) .- m.A0
         # if iter == 4
         #     view(reshape(error_img, m.frame.h, m.frame.w, 3))
@@ -33,7 +33,7 @@ function fit2d{N}(m::AAModel, img::Array{Float64, N},
     end
     fitted_shape = cur_shape
     # wrp = pa_warp(img, cur_shape, mean_shape, m.trigs)
-    warped = pa_warp(m, img, cur_shape)
+    warped = warp_to_mean_shape(m, img, cur_shape)
     error_img = flatten(warped) - m.A0
     fitted_app = reshape(m.A0 + m.A * (m.A' * error_img),
                          m.frame.h, m.frame.w, m.nc)

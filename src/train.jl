@@ -27,7 +27,7 @@ function global_shape_transform(s0, pc)
 end
 
 
-function init_shape_model(m::AAModel, shapes::Vector{Shape})
+function build_shape_model(m::AAModel, shapes::Vector{Shape})
     mean_shape, shapes_aligned = align_shapes(shapes) 
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
@@ -63,11 +63,11 @@ function import_triangulation(model_dir)
 end
                             
 
-function init_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
+function build_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
                          shapes::Vector{Shape})
     app_mat = zeros(m.frame.h * m.frame.w * m.nc, length(imgs))
     for i=1:length(imgs)
-        warped = pa_warp(m, imgs[i], shapes[i])
+        warped = warp_to_mean_shape(m, imgs[i], shapes[i])
         app_mat[:, i] = flatten(warped)
     end
     A0 = squeeze(mean(app_mat, 2), 2)    
@@ -75,7 +75,7 @@ function init_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
     mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
     dA0 = Array(Grad2D, 3)
     for i=1:m.nc
-        dA0[i] = gradient2d(mean_app[:, :, 1], m.warp_map)
+        dA0[i] = gradient2d(mean_app[:, :, 1], m.wparams.warp_map)
     end
     return A0, A, dA0
 end
@@ -87,8 +87,8 @@ function jacobians(m::AAModel)
     dN_dq = zeros(m.frame.h, m.frame.w, 2, 4)
     for j=1:m.frame.w
         for i=1:m.frame.h
-            if m.warp_map[i, j] != 0
-                t = m.trigs[m.warp_map[i, j], :]
+            if m.wparams.warp_map[i, j] != 0
+                t = m.wparams.trigs[m.wparams.warp_map[i, j], :]
                 # for each vertex
                 for k=1:3
                     dik_dp = m.S[t[k], :]
@@ -178,7 +178,7 @@ function sd_images(m::AAModel)
     return SDf
 end
 
-# data format - ? Vecotr{Array{Float64, 3}}? Int8?
+
 function train{N}(m::AAModel,
                   imgs::Vector{Array{Float64, N}},
                   shapes::Vector{Shape})
@@ -189,13 +189,11 @@ function train{N}(m::AAModel,
             "Images should be in Float64 format with values in [0..1]")
     m.nc = N
     m.np = size(shapes[1], 1)        
-    m.frame, m.s0, m.s_star, m.S = init_shape_model(m, shapes)
-    m.trigs = delaunayindexes(shapes[1])
-    # model_dir = joinpath(Pkg.dir(), "AAM", "matlab", "icaam", "saved")
-    # m.frame, m.s0, m.s_star, m.S = import_shape_model(model_dir)
-    # m.trigs = import_triangulation(model_dir)
-    m.warp_map, m.alpha_coords, m.beta_coords = warp_maps(m)
-    m.A0, m.A, m.dA0 = init_app_model(m, imgs, shapes)
+    m.frame, m.s0, m.s_star, m.S = build_shape_model(m, shapes)
+    mean_shape = reshape(m.s0, m.np, 2)
+    m.wparams = warp_params(mean_shape, delaunayindexes(mean_shape),
+                            size(m.frame))    
+    m.A0, m.A, m.dA0 = build_app_model(m, imgs, shapes)
     m.dW_dp, m.dN_dq = jacobians(m)
     m.SD = sd_images(m)
     m.H = m.SD * m.SD'

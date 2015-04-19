@@ -3,14 +3,14 @@ VERSION < v"0.4-" && using Docile
 using StatsBase
 
 include("utils.jl")
+include("simple_warp.jl")  # TODO: move to a separate module
+include("pa_warp.jl")      # TODO: move to a separate module
 include("model.jl")
 include("triang.jl")
 include("polyline.jl")
 include("procrustes.jl")
+include("warps.jl")
 include("data.jl")
-include("warp_maps.jl")
-include("pwa.jl")
-include("pa_warp.jl")
 include("gradient2d.jl")
 include("train.jl")
 include("fit.jl")
@@ -75,7 +75,7 @@ function multitest()
             # triplot(img, init_shape, m.trigs)    
             @time fitted_shape, fitted_app =
                 fit2d(m, imgs[img_idx], shapes[shape_idx], 20);
-            triplot(imgs[img_idx], fitted_shape, m.trigs)
+            triplot(imgs[img_idx], fitted_shape, m.wparams.trigs)
             println("Image #$img_idx; shape #$shape_idx")
             readline(STDIN)
         catch e
