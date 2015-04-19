@@ -38,15 +38,21 @@ end
 
 
 
-function align_shapes(shapes::Vector{Shape}; n_iter=50)
+function align_shapes(shapes::Vector{Shape}; n_iter=100)
     shapes = copy(shapes)
-    mean_shape = mean(shapes)
+    # mean_shape = mean(shapes)
+    mean_shape = shapes[1]
+    ref_shape = mean_shape
     for it=1:n_iter        
         for i=1:length(shapes)
             _, shapes[i], _ = procrustes(mean_shape, shapes[i])
         end
-        mean_shape = mean(shapes)
+        new_mean_shape = mean(shapes)
+        _, Y, _ = procrustes(ref_shape, new_mean_shape)
+        new_mean_shape = Y
+        mean_shape = new_mean_shape
     end
+    mean_shape = mean(shapes)
     return mean_shape, shapes
 end
 

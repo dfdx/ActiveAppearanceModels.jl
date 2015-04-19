@@ -74,7 +74,7 @@ function multitest()
             shape_idx = rand(1:length(imgs))        
             # triplot(img, init_shape, m.trigs)    
             @time fitted_shape, fitted_app =
-                fit2d(m, imgs[img_idx], shapes[shape_idx], 50);
+                fit2d(m, imgs[img_idx], shapes[shape_idx], 20);
             triplot(imgs[img_idx], fitted_shape, m.trigs)
             println("Image #$img_idx; shape #$shape_idx")
             readline(STDIN)
