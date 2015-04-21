@@ -9,10 +9,9 @@ using FixedPointNumbers
 using VoronoiDelaunay
 using MultivariateStats
 using MAT
+using PiecewiseAffineTransforms
 
 include("utils.jl")
-include("simple_warp.jl")  # TODO: move to a separate module
-include("pa_warp.jl")      # TODO: move to a separate module
 include("model.jl")
 include("triang.jl")
 include("polyline.jl")
@@ -32,25 +31,8 @@ include("view.jl")
 ## 4. Move tests to test and examples to examples
 ## 5. Test on CK+
 
-using Cootes
 
-## function test_fit2d()    
-##     # isdefined(:imgs) || (imgs = load_images(1000))
-##     # isdefined(:shapes) || (shapes = load_shapes(1000))
-##     imgs = Cootes.load_images()
-##     shapes = Cootes.load_shapes()
-##     m = AAModel()
-##     @time train(m, imgs, shapes)
-##     img = imgs[1]
-##     init_shape = shapes[1] - 20
-##     viewshape(img, init_shape)
-##     @time fitted_shape, fitted_app = fit2d(m, img, init_shape, 10)
-##     viewshape(img, fitted_shape)
-## end
-
-
-"foo function"
-function foo(x)  x * 2 end
+import Cootes
 
 function test_fit2d()    
     imgs = Cootes.load_images()
