@@ -1,6 +1,14 @@
 
 VERSION < v"0.4-" && using Docile
 using StatsBase
+using Compat
+using Images
+# using ImageView
+using Color
+using FixedPointNumbers
+using VoronoiDelaunay
+using MultivariateStats
+using MAT
 
 include("utils.jl")
 include("simple_warp.jl")  # TODO: move to a separate module
@@ -15,6 +23,14 @@ include("gradient2d.jl")
 include("train.jl")
 include("fit.jl")
 include("view.jl")
+
+
+## PLAN
+## 1. Fix compatibility issues (v0.3 and v0.4) -- pending for Tk.jl
+## 2. Move pa_warp to a separate package
+## 3. Figure out how to deliver data
+## 4. Move tests to test and examples to examples
+## 5. Test on CK+
 
 using Cootes
 
@@ -32,6 +48,9 @@ using Cootes
 ##     viewshape(img, fitted_shape)
 ## end
 
+
+"foo function"
+function foo(x)  x * 2 end
 
 function test_fit2d()    
     imgs = Cootes.load_images()

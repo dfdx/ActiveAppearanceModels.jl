@@ -1,8 +1,5 @@
 
-using Images, ImageView
-using VoronoiDelaunay
 # import Gadfly: plot, Geom
-
 
 function viewshape(img::Image, lms::Shape)
     imgc, img2 = view(img)

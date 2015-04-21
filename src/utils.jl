@@ -7,8 +7,8 @@ datamatrix{T,N}(samples::Vector{Array{T,N}}) =
     hcat([flatten(sample) for sample in samples]...)
 
 # convert single data matrix into a vector of samples
-samplevec{T}(datamat::Matrix{T}, sampledims::(Int...)) =
-    Matrix{T}[reshape(datamat[:, i], sampledims) for i=1:size(datamat, 2)]
+# samplevec{T}(datamat::Matrix{T}, sampledims::(Int...)) =
+#     Matrix{T}[reshape(datamat[:, i], sampledims) for i=1:size(datamat, 2)]
 
 
 

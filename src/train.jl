@@ -1,9 +1,5 @@
 
 
-using MultivariateStats
-using MAT
-
-
 # add gloabl shape transformation parameters and orthonormalize all vectors
 function global_shape_transform(s0, pc)
     npc = size(pc, 2)

@@ -1,7 +1,6 @@
 
 typealias Shape Matrix{Float64}
 
-
 type ModelFrame
     mini::Int
     minj::Int
@@ -27,10 +26,6 @@ type AAModel
     nc::Int
     frame::ModelFrame
     wparams::PAWarpParams
-    # warp_map::Matrix{Int}
-    # alpha_coords::Matrix{Float64}
-    # beta_coords::Matrix{Float64}
-    # trigs::Matrix{Int}
     s0::Vector{Float64}
     s_star::Matrix{Float64}
     S::Matrix{Float64}

@@ -1,8 +1,4 @@
 
-using Images
-using ImageView
-using Color
-using FixedPointNumbers
 
 # TODO: write full description
 # Separate submodules for each dataset + common utilities for reading data
@@ -85,7 +81,7 @@ export load_images
 export load_shapes
 
 using DataUtils
-using MAT
+# using MAT
 
 
 const COOTES_DATA_DIR = "../matlab/icaam/datasets/cootes/data"
