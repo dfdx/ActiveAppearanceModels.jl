@@ -187,7 +187,7 @@ function train{N}(m::AAModel,
     m.np = size(shapes[1], 1)        
     m.frame, m.s0, m.s_star, m.S = build_shape_model(m, shapes)
     mean_shape = reshape(m.s0, m.np, 2)
-    m.wparams = warp_params(mean_shape, delaunayindexes(mean_shape),
+    m.wparams = pa_warp_params(mean_shape, delaunayindexes(mean_shape),
                             size(m.frame))    
     m.A0, m.A, m.dA0 = build_app_model(m, imgs, shapes)
     m.dW_dp, m.dN_dq = jacobians(m)

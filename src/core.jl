@@ -3,7 +3,7 @@ VERSION < v"0.4-" && using Docile
 using StatsBase
 using Compat
 using Images
-# using ImageView
+using ImageView
 using Color
 using FixedPointNumbers
 using VoronoiDelaunay
@@ -13,8 +13,6 @@ using PiecewiseAffineTransforms
 
 include("utils.jl")
 include("model.jl")
-include("triang.jl")
-include("polyline.jl")
 include("procrustes.jl")
 include("warps.jl")
 include("data.jl")
@@ -25,9 +23,9 @@ include("view.jl")
 
 
 ## PLAN
-## 1. Fix compatibility issues (v0.3 and v0.4) -- pending for Tk.jl
+## 1. Fix compatibility issues (v0.3 and v0.4) -- pending for ImageView.jl
 ## 2. Move pa_warp to a separate package
-## 3. Figure out how to deliver data
+## 3. Figure out how to deliver data (separate package?)
 ## 4. Move tests to test and examples to examples
 ## 5. Test on CK+
 
@@ -75,7 +73,7 @@ function multitest()
             shape_idx = rand(1:length(imgs))        
             # triplot(img, init_shape, m.trigs)    
             @time fitted_shape, fitted_app =
-                fit2d(m, imgs[img_idx], shapes[shape_idx], 20);
+                fit2d(m, imgs[img_idx], shapes[shape_idx], 30);
             triplot(imgs[img_idx], fitted_shape, m.wparams.trigs)
             println("Image #$img_idx; shape #$shape_idx")
             readline(STDIN)

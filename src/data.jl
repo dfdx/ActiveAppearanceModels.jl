@@ -81,7 +81,7 @@ export load_images
 export load_shapes
 
 using DataUtils
-# using MAT
+using MAT
 
 
 const COOTES_DATA_DIR = "../matlab/icaam/datasets/cootes/data"
