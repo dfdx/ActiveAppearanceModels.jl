@@ -15,7 +15,7 @@ include("utils.jl")
 include("model.jl")
 include("procrustes.jl")
 include("warps.jl")
-include("data.jl")
+# include("data.jl")
 include("gradient2d.jl")
 include("train.jl")
 include("fit.jl")
@@ -24,13 +24,10 @@ include("view.jl")
 
 ## PLAN
 ## 1. Fix compatibility issues (v0.3 and v0.4) -- pending for ImageView.jl
-## 2. Move pa_warp to a separate package
 ## 3. Figure out how to deliver data (separate package?)
 ## 4. Move tests to test and examples to examples
 ## 5. Test on CK+
 
-
-import Cootes
 
 function test_fit2d()    
     imgs = Cootes.load_images()
@@ -73,7 +70,7 @@ function multitest()
             shape_idx = rand(1:length(imgs))        
             # triplot(img, init_shape, m.trigs)    
             @time fitted_shape, fitted_app =
-                fit2d(m, imgs[img_idx], shapes[shape_idx], 30);
+                fit(m, imgs[img_idx], shapes[shape_idx], 30);
             triplot(imgs[img_idx], fitted_shape, m.wparams.trigs)
             println("Image #$img_idx; shape #$shape_idx")
             readline(STDIN)

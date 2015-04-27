@@ -1,6 +1,6 @@
 
-function fit2d{N}(m::AAModel, img::Array{Float64, N},
-                  init_shape::Shape, max_it::Int)    
+function fit{N}(m::AAModel, img::Array{Float64, N},
+                init_shape::Shape, max_it::Int)    
     @assert size(m.s0, 1) == size(init_shape, 1) * 2 "Shape has wrong size!"
     cur_shape = init_shape
     mean_shape = reshape(m.s0, m.np, 2)

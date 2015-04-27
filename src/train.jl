@@ -24,15 +24,15 @@ end
 
 
 function build_shape_model(m::AAModel, shapes::Vector{Shape})
-    mean_shape, shapes_aligned = align_shapes(shapes) 
+    mean_shape, shapes_aligned = align_shapes(shapes)
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
     # move mean shape to upper-left corner
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
-    mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)    
+    mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)
     frame = ModelFrame(int(mini), int(minj), int(maxi), int(maxj))
     shape_mat = datamatrix(Shape[shape .- mean_shape for shape in shapes_aligned])
-    shape_pca = fit(PCA, shape_mat)
+    shape_pca = MultivariateStats.fit(PCA, shape_mat)
     pc = projection(shape_pca)
     # base shape, global transform shape and transformation matrix
     s0 = flatten(mean_shape)
@@ -49,7 +49,7 @@ function import_shape_model(model_dir)
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
-    mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)    
+    mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)
     frame = ModelFrame(int(mini), int(minj), int(maxi), int(maxj))
     return frame, s0, s_star, S
 end
@@ -57,16 +57,20 @@ end
 function import_triangulation(model_dir)
     return matread(joinpath(model_dir, "trigs.mat"))["trigs"]
 end
-                            
+
 
 function build_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
                          shapes::Vector{Shape})
     app_mat = zeros(m.frame.h * m.frame.w * m.nc, length(imgs))
     for i=1:length(imgs)
-        warped = warp_to_mean_shape(m, imgs[i], shapes[i])
+        try
+            warped = warp_to_mean_shape(m, imgs[i], shapes[i])
+        catch
+            println("Couldn't process image #$i")
+        end
         app_mat[:, i] = flatten(warped)
     end
-    A0 = squeeze(mean(app_mat, 2), 2)    
+    A0 = squeeze(mean(app_mat, 2), 2)
     A = projection(fit(PCA, app_mat .- A0))
     mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
     dA0 = Array(Grad2D, 3)
@@ -131,7 +135,7 @@ function sd_images(m::AAModel)
     for i=1:4
         prj_diff = zeros(m.nc, size(m.A, 2))
         for j=1:size(m.A, 2)
-            for c=1:m.nc                
+            for c=1:m.nc
                 prj_diff[c, j] = sum(app_modes[:,:,c,j] .*
                                      (m.dA0[c].di .* m.dN_dq[:,:,1,i] +
                                       m.dA0[c].dj .* m.dN_dq[:,:,2,i]))
@@ -145,13 +149,13 @@ function sd_images(m::AAModel)
             for c=1:m.nc
                 SD[:,:,c,i] = SD[:,:,c,i] - prj_diff[c,j] * app_modes[:,:,c,j]
             end
-        end       
+        end
     end
     # SD images for shape parameters
     for i=1:size(m.dW_dp, 4)
         prj_diff = zeros(m.nc, size(m.A, 2))
         for j=1:size(m.A, 2)
-            for c=1:m.nc       
+            for c=1:m.nc
                 prj_diff[c,j] = sum(app_modes[:,:,c,j] .*
                                     (m.dA0[c].di .* m.dW_dp[:,:,1,i] +
                                      m.dA0[c].dj .* m.dW_dp[:,:,2,i]))
@@ -184,11 +188,11 @@ function train{N}(m::AAModel,
     @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
             "Images should be in Float64 format with values in [0..1]")
     m.nc = N
-    m.np = size(shapes[1], 1)        
+    m.np = size(shapes[1], 1)
     m.frame, m.s0, m.s_star, m.S = build_shape_model(m, shapes)
     mean_shape = reshape(m.s0, m.np, 2)
     m.wparams = pa_warp_params(mean_shape, delaunayindexes(mean_shape),
-                            size(m.frame))    
+                            size(m.frame))
     m.A0, m.A, m.dA0 = build_app_model(m, imgs, shapes)
     m.dW_dp, m.dN_dq = jacobians(m)
     m.SD = sd_images(m)
