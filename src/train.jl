@@ -63,15 +63,11 @@ function build_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
                          shapes::Vector{Shape})
     app_mat = zeros(m.frame.h * m.frame.w * m.nc, length(imgs))
     for i=1:length(imgs)
-        try
-            warped = warp_to_mean_shape(m, imgs[i], shapes[i])
-        catch
-            println("Couldn't process image #$i")
-        end
+        warped = warp_to_mean_shape(m, imgs[i], shapes[i])
         app_mat[:, i] = flatten(warped)
     end
     A0 = squeeze(mean(app_mat, 2), 2)
-    A = projection(fit(PCA, app_mat .- A0))
+    A = projection(MultivariateStats.fit(PCA, app_mat .- A0))
     mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
     dA0 = Array(Grad2D, 3)
     for i=1:m.nc
@@ -187,7 +183,7 @@ function train{N}(m::AAModel,
             "Different number of images and landmark sets")
     @assert(0 <= minimum(imgs[1]) && maximum(imgs[1]) <= 1,
             "Images should be in Float64 format with values in [0..1]")
-    m.nc = N
+    m.nc = size(imgs[1], 3)
     m.np = size(shapes[1], 1)
     m.frame, m.s0, m.s_star, m.S = build_shape_model(m, shapes)
     mean_shape = reshape(m.s0, m.np, 2)

@@ -3,7 +3,8 @@ module ActiveAppearanceModels
 
 export AAModel,
        train,
-       fit
+       fit,
+       Shape  # convenient alias
 
 include("core.jl")
 
