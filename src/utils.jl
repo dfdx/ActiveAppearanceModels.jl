@@ -43,3 +43,4 @@ function StatsBase.describe{T,N}(A::Array{T,N})
     println("max    : $(maximum(A))")
     println("sum    : $(sum(A))")
 end
+

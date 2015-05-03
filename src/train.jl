@@ -197,3 +197,4 @@ function train{N}(m::AAModel,
     m.R = m.invH * m.SD
     return m
 end
+

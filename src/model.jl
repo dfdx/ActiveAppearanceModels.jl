@@ -44,5 +44,3 @@ end
 
 Base.show(io::IO, m::AAModel) = print(io, "AAModel($(m.np))")
 
-
-
