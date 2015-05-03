@@ -16,7 +16,7 @@ Active appearance models provide a way to find a set of related points on an ima
 
 Active appearance models are first trained on a bunch of `(image, shape)` pairs	and then, given a new image and initial guess for a shape, are fitted to this image to find exact location of landmarks. Let's take a concrete example. 
 
-First, we need some data to train a model on. `FaceDatasets` package contains a simple dataset from original research by Tim Cootes: 
+First, we need some data to train a model on. `FaceDatasets` package contains a simple dataset from original research by Tim Cootes et al.: 
 
     using FaceDatasets
     imgs = load_images(:cootes)
@@ -56,5 +56,5 @@ And here's the result:
     view(fitted_app)
 
 ![Fitted Shape](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_fitted_shape.png)
-![Fitted App](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_fitted_app.png)
+<img src="https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_fitted_app.png" alt="Fitted App" align="middle" />
 
