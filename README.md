@@ -1,3 +1,10 @@
-# AAM.jl
+# Active Appearance Models
 
-This is a work in progress aiming to reimplement active appearance models in Julia.
+Port of Luca Vezzaro's [ICAAM](http://www.mathworks.com/matlabcentral/fileexchange/32704-icaam-inverse-compositional-active-appearance-models).
+
+See `examples` folder for runnable examples.
+
+TODO:
+
+ 1. What are active appearance models
+ 2. Basic usage
