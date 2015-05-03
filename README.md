@@ -8,11 +8,11 @@ Active appearance models provide a way to find a set of related points on an ima
 
 **Shape** consists of a fixed number of points (so-called landmarks) that describe configuration of some object on an image. For example, here's a shape describing some human's face:
 
-![](...)
+![Shape](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_shape.png)
 
 **Appearance** is made of all pixels on the image inside the shape. E.g. appearance, corresponding to the shape above looks like this: 
 
-![](...)
+![Appearance](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_app.png)
 
 Active appearance models are first trained on a bunch of `(image, shape)` pairs	and then, given a new image and initial guess for a shape, are fitted to this image to find exact location of landmarks. Let's take a concrete example. 
 
@@ -42,7 +42,7 @@ Before fitting let's see `init_shape` position:
 
     viewshape(imgs[tst], init_shape)    
 
-![]()
+![Init Shape](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_init_shape.png)
 
 
 Fitting is straightforward too:
@@ -55,4 +55,6 @@ And here's the result:
     viewshape(imgs[tst], fitted_shape)
     view(fitted_app)
 
-![]()
+![Fitted Shape](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_fitted_shape.png)
+![Fitted App](https://raw.githubusercontent.com/dfdx/ActiveAppearanceModels.jl/master/docs/data/readme_fitted_app.png)
+
