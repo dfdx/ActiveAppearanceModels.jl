@@ -17,4 +17,4 @@ include("warps.jl")
 include("gradient2d.jl")
 include("train.jl")
 include("fit.jl")
-
+include("view.jl")
