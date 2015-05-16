@@ -1,3 +1,5 @@
+![travis](https://travis-ci.org/dfdx/ActiveAppearanceModels.jl.svg)
+
 # Active Appearance Models
 
 Port of Luca Vezzaro's [ICAAM](http://www.mathworks.com/matlabcentral/fileexchange/32704-icaam-inverse-compositional-active-appearance-models).
