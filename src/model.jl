@@ -44,3 +44,17 @@ end
 
 Base.show(io::IO, m::AAModel) = print(io, "AAModel($(m.np))")
 
+
+function describe_aam(m::AAModel)
+    println("np = $(m.np)")
+    println("nc = $(m.nc)")
+    println("frame = $(m.frame)")
+    println("size(s_star) = $(size(m.s_star))")
+    println("size(S) = $(size(m.S))")
+    println("size(A0) = $(size(m.A0))")
+    println("size(A) = $(size(m.A))")
+    println("size(dA0) = $(size(m.dA0))")
+    println("size(dA0[1]) = $(size(m.dA0[1]))")
+    println("size(dW_dp) = $(size(m.dW_dp))")
+    println("size(dN_dq) = $(size(m.dW_dq))")
+end
