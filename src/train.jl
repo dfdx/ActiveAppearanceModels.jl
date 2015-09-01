@@ -3,7 +3,7 @@
 # add gloabl shape transformation parameters and orthonormalize all vectors
 function global_shape_transform(s0, pc)
     npc = size(pc, 2)
-    np = int(length(s0) / 2)
+    np = @compat Int(length(s0) / 2)
     # columns 1:4 - global transform params
     # columns 5:end - shape principal components
     s_star_pc = zeros(2*np, npc+4)
@@ -30,7 +30,7 @@ function build_shape_model(m::AAModel, shapes::Vector{Shape})
     # move mean shape to upper-left corner
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
     mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)
-    frame = ModelFrame(int(mini), int(minj), int(maxi), int(maxj))
+    frame = ModelFrame(@compat(Int(mini)), @compat(Int(minj)), @compat(Int(maxi)), @compat(Int(maxj)))
     shape_mat = datamatrix(Shape[shape .- mean_shape for shape in shapes_aligned])
     shape_pca = MultivariateStats.fit(PCA, shape_mat)
     pc = projection(shape_pca)
@@ -45,12 +45,12 @@ function import_shape_model(model_dir)
     s0 = squeeze(matread(joinpath(model_dir, "s0.mat"))["s0"], 2)
     s_star = matread(joinpath(model_dir, "s_star.mat"))["s_star"]
     S = matread(joinpath(model_dir, "S.mat"))["S"]
-    mean_shape = reshape(s0, int(length(s0) / 2), 2)
+    mean_shape = reshape(s0, @compat(Int(length(s0) / 2)), 2)
     mini, minj = minimum(mean_shape[:, 1]), minimum(mean_shape[:, 2])
     maxi, maxj = maximum(mean_shape[:, 1]), maximum(mean_shape[:, 2])
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
     mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)
-    frame = ModelFrame(int(mini), int(minj), int(maxi), int(maxj))
+    frame = ModelFrame(@compat(Int(mini)), @compat(Int(minj)), @compat(Int(maxi)), @compat(Int(maxj)))
     return frame, s0, s_star, S
 end
 

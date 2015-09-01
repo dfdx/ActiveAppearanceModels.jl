@@ -9,7 +9,7 @@ type ModelFrame
     h::Int
     w::Int
     ModelFrame(mini::Int, minj::Int, maxi::Int, maxj::Int) =
-        new(mini, minj, maxi, maxj, int(ceil(maxi - mini + 3)), int(ceil(maxj - minj + 3)))
+        new(mini, minj, maxi, maxj, @compat(Int(ceil(maxi - mini + 3))), @compat(Int(ceil(maxj - minj + 3))))
 end
 
 Base.size(frame::ModelFrame) = (frame.h, frame.w)
