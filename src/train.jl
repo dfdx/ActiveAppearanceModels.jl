@@ -71,7 +71,7 @@ function build_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
     mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
     dA0 = Array(Grad2D, 3)
     for i=1:m.nc
-        dA0[i] = gradient2d(mean_app[:, :, 1], m.wparams.warp_map)
+        dA0[i] = gradient2d(mean_app[:, :, i], m.wparams.warp_map)        
     end
     return A0, A, dA0
 end
