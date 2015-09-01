@@ -3,7 +3,7 @@ using StatsBase
 using Compat
 using Images
 using ImageView
-using Color
+using Colors
 using FixedPointNumbers
 using VoronoiDelaunay
 using MultivariateStats
