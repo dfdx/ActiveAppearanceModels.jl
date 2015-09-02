@@ -5,6 +5,10 @@ using FaceDatasets
 
 imgs = load_images(:cootes)
 shapes = load_shapes(:cootes)
+
+println("Number of images: $(length(imgs))")
+println("Dimensions of images: $(size(imgs[1]))")
+
 @time m = train(AAModel(), imgs, shapes)
 for i=1:10
     try
