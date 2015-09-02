@@ -4,6 +4,8 @@ using PiecewiseAffineTransforms
 using FaceDatasets
 
 imgs = load_images(:cootes)
+# remove additional dimension (see https://github.com/dfdx/ActiveAppearanceModels.jl/issues/1)
+imgs = Array{Float64, 3}[img[:, :, 1:3] for img in imgs]
 shapes = load_shapes(:cootes)
 @time m = train(AAModel(), imgs, shapes)
 for i=1:10
