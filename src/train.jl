@@ -69,7 +69,7 @@ function build_app_model{N}(m::AAModel, imgs::Vector{Array{Float64, N}},
     A0 = squeeze(mean(app_mat, 2), 2)
     A = projection(MultivariateStats.fit(PCA, app_mat .- A0))
     mean_app = reshape(A0, m.frame.h, m.frame.w, m.nc)
-    dA0 = Array(Grad2D, 3)
+    dA0 = Array(Grad2D, m.nc)
     for i=1:m.nc
         dA0[i] = gradient2d(mean_app[:, :, i], m.wparams.warp_map)        
     end
