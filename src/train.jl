@@ -22,6 +22,7 @@ function global_shape_transform(s0, pc)
     return s_star, S
 end
 
+round_int(x::Real) = @compat Int(round(x))
 
 function build_shape_model(m::AAModel, shapes::Vector{Shape})
     mean_shape, shapes_aligned = align_shapes(shapes)
@@ -30,7 +31,8 @@ function build_shape_model(m::AAModel, shapes::Vector{Shape})
     # move mean shape to upper-left corner
     mean_shape[:, 1] = mean_shape[:, 1] .- (mini - 2)
     mean_shape[:, 2] = mean_shape[:, 2] .- (minj - 2)
-    frame = ModelFrame(@compat(Int(mini)), @compat(Int(minj)), @compat(Int(maxi)), @compat(Int(maxj)))
+    frame = ModelFrame(round_int(mini), round_int(minj),
+                       round_int(maxi), round_int(maxj))
     shape_mat = datamatrix(Shape[shape .- mean_shape for shape in shapes_aligned])
     shape_pca = MultivariateStats.fit(PCA, shape_mat)
     pc = projection(shape_pca)
