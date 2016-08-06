@@ -4,8 +4,8 @@ using FaceDatasets
 # using PiecewiseAffineTransforms
 
 function smoke_cootes()
-    imgs = load_images(:cootes)
-    shapes = load_shapes(:cootes)    
+    imgs = load_images(FaceDatasets.CootesDataset)
+    shapes = load_shapes(FaceDatasets.CootesDataset)    
     test_img_idx = 8
     one_out = [1:test_img_idx-1; test_img_idx+1:length(imgs)]
     m = AAModel()

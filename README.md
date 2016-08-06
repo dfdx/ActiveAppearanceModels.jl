@@ -21,8 +21,8 @@ Active appearance models are first trained on a bunch of `(image, shape)` pairs	
 First, we need some data to train a model on. `FaceDatasets` package contains a simple dataset from original research by Tim Cootes et al. that fits our needs: 
 
     using FaceDatasets
-    imgs = load_images(:cootes)
-    shapes = load_shapes(:cootes)
+    imgs = load_images(CootesDataset)
+    shapes = load_shapes(CootesDataset)
    
 We will use simple leave-one-one cross-validation to see how training and testing works:
 

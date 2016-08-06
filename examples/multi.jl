@@ -3,8 +3,8 @@ using ActiveAppearanceModels
 using PiecewiseAffineTransforms
 using FaceDatasets
 
-imgs = load_images(:cootes)
-shapes = load_shapes(:cootes)
+imgs = load_images(CootesDataset)
+shapes = load_shapes(CootesDataset)
 @time m = train(AAModel(), imgs, shapes)
 for i=1:10
     try
